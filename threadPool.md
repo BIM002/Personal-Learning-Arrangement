@@ -34,9 +34,9 @@ public ThreadPoolExecutor(int corePoolSize,
 
 ***timeUnit*** 时间单位
 
-***workQueue*** 超出最大线程数的任务放到阻塞队列中 默认为LinkedBlockingQueue 有界队列 最大值Integer.MAX_VALUE
+***workQueue*** 超出最大线程数的任务放到阻塞队列中 默认为LinkedBlockingQueue 无界队列 最大值Integer.MAX_VALUE
 
-***threadFactory*** 线程工厂 默认为Executos.defaultThreadFactory
+***threadFactory*** 线程工厂 默认为Executors.defaultThreadFactory
 
 ***rejectedExecutionHandler*** 拒绝策略 默认AbortPolicy 线程队列满之后丢弃任务并抛出RejectedExecutionException异常
 
