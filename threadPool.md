@@ -69,7 +69,9 @@ new ThreadPoolExecutor(0, Integer.MAX_VALUE,
     - 1:scheduleAtFixedRate(Runnable command,long initialDelay,long period,TimeUnit unit)
     - 2:scheduleWithFixedDelay(Runnable command,long initialDelay,long delay,TimeUnit unit)
 ```
-new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
+new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                      60L, TimeUnit.SECONDS,
+                                      new SynchronousQueue<Runnable>());
 ```
 
 4.newSingleThreadExecutor 单一线程池   
@@ -88,7 +90,7 @@ new FinalizableDelegatedExecutorService(
 + 阻塞队列的选择
     - 1.ArrayBlockingQueue 遵循FIFO原则的队列
     - 2.LinkedBlockingQueue 无界队列
-    - 3.在使用PriorityBlockingQueue会丢弃优先级高的任务所以不能与PriorityBlockingQueue配合使用 优先级队列
+    - 3.PriorityBlockingQueue 优先级队列 优先级高的任务会放在队列头,在使用DiscardOldestPolicy拒绝策略时会丢弃优先级高的任务所以不能与其配合使用 
     - 4.SynchronousQueue 同步移交队列 只有在使用无界线程池(2,3)或者有饱和策略时才建议使用该队列
 
 ###rejectedExecutionHandler 
