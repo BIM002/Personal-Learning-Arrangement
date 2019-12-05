@@ -1,0 +1,106 @@
+#线程池创建参数
+
+```
+threadPoolExecutor(corePoolSize,maximumPoolSize,keepAliveTime,timeUnit,workQueue,threadFactory,RejectedExecutionHandler)
+```
+####不同构造
+```
+public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue) {
+        this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+             Executors.defaultThreadFactory(), defaultHandler);
+}
+```
+```
+public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              ThreadFactory threadFactory) {
+        this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+             threadFactory, defaultHandler);
+    }    
+```
+###详细参数
+***corePoolSize*** 核心线程数
+
+***maximumPoolSize*** 最大线程数
+
+***keepAliveTime*** 超出核心线程数的线程任务结束最大等待时间
+
+***timeUnit*** 时间单位
+
+***workQueue*** 超出最大线程数的任务放到阻塞队列中 默认为LinkedBlockingQueue 有界队列 最大值Integer.MAX_VALUE
+
+***threadFactory*** 线程工厂 默认为Executos.defaultThreadFactory
+
+***rejectedExecutionHandler*** 拒绝策略 默认AbortPolicy 线程队列满之后丢弃任务并抛出RejectedExecutionException异常
+
+###线程池种类:
+1.newFixedThreadPool   定长线程池    
+可以根据配置调整最大线程数量,并且流量暴增时也不会占用过多资源
+
+```
+new ThreadPoolExecutor(nThreads, nThreads,
+                                      0L, TimeUnit.MILLISECONDS,
+                                      new LinkedBlockingQueue<Runnable>(),
+                                      threadFactory);
+```
+
+2.newCachedThreadPool  可缓存线程池   
+当第二个任务开始时第一个任务执行完，第二个任务会复用第一个任务创建的线程,实现了线程的复用;
+		  任务压力大时会创建很多线程,无法控制;
+```
+new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                      60L, TimeUnit.SECONDS,
+                                      new SynchronousQueue<Runnable>(),
+                                      threadFactory);
+```
+
+3.newScheduledThreadPool 定时任务线程池 
+可以定时的,周期性的执行任务让任务重复执行 
+延迟方法 1:scheduleAtFixedRate(Runnable command,long initialDelay,long period,TimeUnit unit)
+    	2:scheduleWithFixedDelay(Runnable command,long initialDelay,long delay,TimeUnit unit)
+```
+new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
+```
+
+4.newSingleThreadExecutor 单一线程池   
+核心线程数与最大线程数都为1,至始至终都由一个线程来执行,保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行
+```
+new FinalizableDelegatedExecutorService
+           	 						(new ThreadPoolExecutor(1, 1,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>())); 
+```
+
+***1,4 因为workQueue是linkedBlockingQueue默认为Integer.MAX_VALUE 可能会堆积大量请求,导致OOM***
+
+***2,3 因为maximumPoolSize是Integer.MAX_VALUE 可能会创建大量线程,导致OOM***
+
+
+###workQueue 
++ 阻塞队列的选择
+    - 1.ArrayBlockingQueue 遵循FIFO原则的队列
+    - 2.LinkedBlockingQueue 无界队列
+    - 3.在使用PriorityBlockingQueue会丢弃优先级高的任务所以不能与PriorityBlockingQueue配合使用 优先级队列
+    - 4.SynchronousQueue 同步移交队列 只有在使用无界线程池(2,3)或者有饱和策略时才建议使用该队列
+
+###rejectedExecutionHandler 
++ 策略选项：
+    - 1.CallerRunsPolicy 由调用线程执行任务(即提交任务线程)
+    - 2.AbortPolicy   丢弃任务 抛出异常
+    - 3.DiscardPolicy 静默丢弃任务 无异常
+    - 4.DiscardOldestPolicy 丢弃队列最前面的任务,在使用PriorityBlockingQueue会丢弃优先级高的任务所以不能与PriorityBlockingQueue配合使用
+
+
+
+###线程池运行流程
+
+***如果线程池未初始化池,且运行线程数<corePoolSize,任务进来会创建一个核心线程,如果运行线程数>核心线程数,任务会阻塞进阻塞队列,如果队列满了会创建线程直到达到maximumPoolSize数,最后执行饱和策略***
+
+```
+ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("MyThreadFactory").setDaemon(true).build();
+```
