@@ -34,7 +34,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 ***timeUnit*** 时间单位
 
-***workQueue*** 超出最大线程数的任务放到阻塞队列中 默认为LinkedBlockingQueue 无界队列 最大值Integer.MAX_VALUE
+***workQueue*** 超出最大线程数的任务放到阻塞队列中 默认为LinkedBlockingQueue未设置大小为无界队列 最大值Integer.MAX_VALUE,设置固定大小为有界队列 
 
 ***threadFactory*** 线程工厂 默认为Executors.defaultThreadFactory
 
