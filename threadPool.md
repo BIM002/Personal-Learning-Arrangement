@@ -62,9 +62,12 @@ new ThreadPoolExecutor(0, Integer.MAX_VALUE,
 ```
 
 3.newScheduledThreadPool 定时任务线程池 
+
 可以定时的,周期性的执行任务让任务重复执行 
-延迟方法 1:scheduleAtFixedRate(Runnable command,long initialDelay,long period,TimeUnit unit)
-    	2:scheduleWithFixedDelay(Runnable command,long initialDelay,long delay,TimeUnit unit)
+
++ 延迟方法 
+    - 1:scheduleAtFixedRate(Runnable command,long initialDelay,long period,TimeUnit unit)
+    - 2:scheduleWithFixedDelay(Runnable command,long initialDelay,long delay,TimeUnit unit)
 ```
 new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
 ```
@@ -72,8 +75,8 @@ new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
 4.newSingleThreadExecutor 单一线程池   
 核心线程数与最大线程数都为1,至始至终都由一个线程来执行,保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行
 ```
-new FinalizableDelegatedExecutorService
-           	 						(new ThreadPoolExecutor(1, 1,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>())); 
+new FinalizableDelegatedExecutorService(
+    new ThreadPoolExecutor(1, 1,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>())); 
 ```
 
 ***1,4 因为workQueue是linkedBlockingQueue默认为Integer.MAX_VALUE 可能会堆积大量请求,导致OOM***
