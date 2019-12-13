@@ -24,7 +24,7 @@ public class HashMap<K, V> implements BaseMap {
     /**
      * entry数组
      */
-    private Entry<K,V>[] table;
+    private Entry<K, V>[] table;
 
     /**
      * 下一个扩充map的阈值
@@ -41,19 +41,33 @@ public class HashMap<K, V> implements BaseMap {
         if (defaultSize < 0) {
             throw new IllegalArgumentException("数组下标异常");
         }
-        if (defaultSize > maxSize){
+        if (defaultSize > maxSize) {
             this.defaultSize = maxSize;
         }
-            if (defaultAddFactor < 0 || Float.isNaN(defaultAddFactor)) {
-                throw new IllegalArgumentException("扩展因子异常");
-            }
+        if (defaultAddFactor < 0 || Float.isNaN(defaultAddFactor)) {
+            throw new IllegalArgumentException("扩展因子异常");
+        }
         this.defaultSize = defaultSize;
         this.defaultAddFactor = defaultAddFactor;
         table = new Entry[defaultSize];
         threshold = tableSizeFor(defaultSize);
     }
 
-    static final int tableSizeFor(int cap) {
+    /**
+     * cap = 129 1000 0001
+     * n = 128   1000 0000
+     * n >>> 1 = 0100 0000
+     * n | n>>>1 = 1100 0000
+     * n >>> 2 = 0011 0000
+     * n | n>>>2 = 1111 0000
+     * x 需要看传入cap的位数 以上述为例8位 位运算结束n为 1111 1111  255
+     * 位运算方式把所有非0计算成1,找出最接近2^x的数
+     * 最后n+1返回2^x的数值
+     *
+     * @param cap
+     * @return
+     */
+    static int tableSizeFor(int cap) {
         int n = cap - 1;
         n |= n >>> 1;
         n |= n >>> 2;
@@ -63,13 +77,18 @@ public class HashMap<K, V> implements BaseMap {
         return (n < 0) ? 1 : (n >= maxSize) ? maxSize : n + 1;
     }
 
+    public static void main(String[] args) {
+//        java.util.HashMap hashMap = new java.util.HashMap();
+//        hashMap.put("test123","test1");
+    }
+
     /**
      * 根据key计算hash
      *
      * @param k
      * @return
      */
-    private int hash(K k) {
+    private int hash(Object k) {
         int hash;
         return (k == null) ? 0 : (hash = k.hashCode()) ^ (hash >>> 16);
     }
@@ -89,7 +108,26 @@ public class HashMap<K, V> implements BaseMap {
 
     @Override
     public Object put(Object o, Object o2) {
-
+        Entry<K, V>[] tab;
+        Entry<K, V> p;
+        int n, i;
+        if ((tab = table) == null || (n = tab.length) == 0) {
+            //初始化map的数组长度
+            n = tab.length;
+        }
+        //根据初始化完的数组长度和散列值做与操作
+        int hash = hash(o);
+        p = tab[i = (n - 1) & hash];
+        if (p == null) {
+            tab[i] = new Entry(o, o2, null);
+        } else {
+            Entry<K, V> e;
+            K k;
+            //判断key相同
+            if (p.hash == hash && ((k = p.k) == o || (o != null && o.equals(k)))) {
+                e = p;
+            }
+        }
         return null;
     }
 
