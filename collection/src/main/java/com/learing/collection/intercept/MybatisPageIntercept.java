@@ -1,4 +1,4 @@
-package com.learing.intercept;
+package com.learing.collection.intercept;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.parameter.ParameterHandler;

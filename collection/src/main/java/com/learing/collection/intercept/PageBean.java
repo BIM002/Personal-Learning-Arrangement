@@ -1,4 +1,4 @@
-package com.learing.intercept;
+package com.learing.collection.intercept;
 
 import lombok.Data;
 
