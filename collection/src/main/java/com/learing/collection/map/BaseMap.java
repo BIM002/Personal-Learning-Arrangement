@@ -7,7 +7,16 @@ package com.learing.collection.map;
  **/
 public interface BaseMap<K,V> {
 
-    public V put(K k,V v);
+    /**
+     *
+     * @author yelongfei
+     * @date 2020/1/8 14:04
+     * @param key
+     * @param value
+     * @return
+     * @throws
+     */
+    V put(K key,V value);
 
-    public V get(K k);
+    V get(K k);
 }
