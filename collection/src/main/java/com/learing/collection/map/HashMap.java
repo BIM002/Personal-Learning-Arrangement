@@ -23,7 +23,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	 */
 	private double useSize;
 	/**
-	 * entry数组
+	 * entry数组  也就是桶
 	 */
 	private Entry<K, V>[] table;
 
@@ -44,6 +44,12 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 
 	/**
 	 * 链表转成树结构的阈值
+	 * 为什么转成红黑树阈值为8? 时间和空间的权衡
+	 * 红黑树存储空间是 node 节点的2倍
+	 * 1.在hash算法足够好,遵循泊松分布情况下 链表个数达到8的情况为0.00000006 千万分之6 基本是不可能的 也就节省了空间
+	 * 2.链表的查询效率在长度 6时为6/2 = 3 红黑树 log(6) = 2.6;长度8时 为8/2=4 红黑树 log(8) = 3,
+	 * 只有当hash算法不好,hash冲突激烈,为了查询检索效率牺牲空间存储转换成红黑树
+	 * 红黑树退化成链表阈值为6也是同上原因
 	 */
 	static final int TREEIFY_THRESHOLD = 8;
 
@@ -117,7 +123,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	 * @return
 	 */
 	private int getIndex(K k, int length) {
-		//key的hash与长度做取模运算
+		//key的hash与长度做与运算
 		int index = hash(k) & (length - 1);
 		return index > 0 ? index : -index;
 	}
@@ -145,14 +151,13 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 			K k = p.k;
 			//对象的hash值以及key相同 -> 执行修改
 			if (p.hash == hash && (k == key || (key != null && key.equals(k)))) {
-				//修改对象赋值
 				e = p;
 			} else if (p instanceof TreeNode) {
 				//如果是二叉树类型,增加到树结构下 -> 新增数据
 				e = ((TreeNode<K, V>) p).putTreeVal(this, tab, hash, key, value);
 			} else {
 				//执行计算
-				//遍历落点链表数据,插入到链表尾部 -> 新增数据
+				//遍历落点桶中的链表数据,插入到链表尾部 -> 新增数据
 				for (int binCount = 0; ; ++binCount) {
 					if ((e = p.next) == null) {
 						//设置下一节点为新数据
@@ -211,10 +216,10 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	 * @param <V>
 	 */
 	public static final class TreeNode<K, V> extends Entry<K, V> {
-		Entry<K, V> before, after;
+		Entry<K, V> before, after; //其他bin桶
 		TreeNode<K, V> parent;  // 红黑树连接节点
-		TreeNode<K, V> left;
-		TreeNode<K, V> right;
+		TreeNode<K, V> left; //左节点引用
+		TreeNode<K, V> right; //右节点引用
 		TreeNode<K, V> prev;    // 需要取消链接后删除
 		boolean red;           // 红黑树表示红或黑
 
@@ -294,6 +299,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 		final int hash;
 		final K k;
 		V v;
+		//链表节点
 		Entry next;
 
 		public Entry(int hash, K k, V v, Entry next) {
