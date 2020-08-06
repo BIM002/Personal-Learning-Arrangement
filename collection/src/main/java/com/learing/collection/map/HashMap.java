@@ -25,7 +25,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	/**
 	 * entry数组  也就是桶
 	 */
-	private Entry<K, V>[] table;
+	private Node<K, V>[] table;
 
 	/**
 	 * 下一个扩充map的阈值
@@ -53,6 +53,8 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	 */
 	static final int TREEIFY_THRESHOLD = 8;
 
+	static final int UNTREEIFY_THRESHOLD = 6;
+
 	private static int maxSize = 1 << 30;
 
 	public HashMap() {
@@ -71,7 +73,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 		}
 		this.defaultSize = defaultSize;
 		this.defaultAddFactor = defaultAddFactor;
-		table = new Entry[defaultSize];
+		table = new Node[defaultSize];
 		threshold = tableSizeFor(defaultSize);
 	}
 
@@ -131,8 +133,8 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	@Override
 	public V put(K key, V value) {
 		//map数组
-		Entry<K, V>[] tab;
-		Entry<K, V> p;
+		Node<K, V>[] tab;
+		Node<K, V> p;
 		int n, i;
 		//在放入第一个参数时进行真正的初始化长度
 		if ((tab = table) == null || (n = tab.length) == 0) {
@@ -145,15 +147,15 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 		p = tab[i = (n - 1) & hash];
 		if (p == null) {
 			//无冲突直接放置
-			tab[i] = new Entry(hash, key, value, null);
+			tab[i] = new Node(hash, key, value, null);
 		} else {
-			Entry<K, V> e;
+			Node<K, V> e;
 			K k = p.k;
-			//对象的hash值以及key相同 -> 执行修改
+			//对象的hash值以及key相同 -> 先赋值
 			if (p.hash == hash && (k == key || (key != null && key.equals(k)))) {
 				e = p;
 			} else if (p instanceof TreeNode) {
-				//如果是二叉树类型,增加到树结构下 -> 新增数据
+				//如果是红黑树类型,增加到树结构下 -> 新增数据
 				e = ((TreeNode<K, V>) p).putTreeVal(this, tab, hash, key, value);
 			} else {
 				//执行计算
@@ -161,7 +163,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 				for (int binCount = 0; ; ++binCount) {
 					if ((e = p.next) == null) {
 						//设置下一节点为新数据
-						p.next = newEntry(hash, key, value, null);
+						p.next = newNode(hash, key, value, null);
 						//查看bin中总数>=7 -1为开始
 						// -1 for 1st
 						if (binCount >= TREEIFY_THRESHOLD - 1) {
@@ -200,8 +202,8 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 		return null;
 	}
 
-	Entry<K, V> newEntry(int hash, K key, V value, Entry<K, V> next) {
-		return new Entry<>(hash, key, value, next);
+	Node<K, V> newNode(int hash, K key, V value, Node<K, V> next) {
+		return new Node<>(hash, key, value, next);
 	}
 
 	@Override
@@ -215,19 +217,19 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	 * @param <K>
 	 * @param <V>
 	 */
-	public static final class TreeNode<K, V> extends Entry<K, V> {
-		Entry<K, V> before, after; //其他bin桶
+	public static final class TreeNode<K, V> extends Node<K, V> {
+		Node<K, V> before, after; //其他bin桶
 		TreeNode<K, V> parent;  // 红黑树连接节点
 		TreeNode<K, V> left; //左节点引用
 		TreeNode<K, V> right; //右节点引用
 		TreeNode<K, V> prev;    // 需要取消链接后删除
 		boolean red;           // 红黑树表示红或黑
 
-		public TreeNode(int hash, K k, V v, Entry next) {
+		public TreeNode(int hash, K k, V v, Node<K, V> next) {
 			super(hash, k, v, next);
 		}
 
-		final TreeNode<K, V> putTreeVal(HashMap<K, V> map, Entry<K, V>[] tab,
+		final TreeNode<K, V> putTreeVal(HashMap<K, V> map, Node<K, V>[] tab,
 		                                int hash, K key, V value) {
 			Class<?> kc = null;
 			boolean searched = false;
@@ -262,7 +264,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 
 				TreeNode<K, V> xp = p;
 				if ((p = (dir <= 0) ? p.left : p.right) == null) {
-					Entry<K, V> xpn = xp.next;
+					Node<K, V> xpn = xp.next;
 					TreeNode<K, V> x = map.newTreeNode(hash, key, value, xpn);
 					if (dir <= 0)
 						//左子节点
@@ -295,14 +297,14 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 	 * @param <K>
 	 * @param <V>
 	 */
-	public static class Entry<K, V> implements BaseEntry {
+	public static class Node<K, V> implements BaseEntry<K,V> {
 		final int hash;
 		final K k;
 		V v;
 		//链表节点
-		Entry next;
+		Node<K,V> next;
 
-		public Entry(int hash, K k, V v, Entry next) {
+		public Node(int hash, K k, V v, Node<K,V>  next) {
 			this.hash = hash;
 			this.k = k;
 			this.v = v;
@@ -340,7 +342,7 @@ public class HashMap<K, V> implements BaseMap<K, V>, Serializable {
 			if (obj == this) {
 				return true;
 			}
-			if (obj instanceof HashMap.Entry) {
+			if (obj instanceof HashMap.Node) {
 				Map.Entry<?, ?> e = (Map.Entry<?, ?>) obj;
 				//比较k,v
 				if (Objects.equals(k, e.getKey()) &&

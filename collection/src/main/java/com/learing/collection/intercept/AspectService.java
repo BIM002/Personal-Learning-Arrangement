@@ -1,6 +1,7 @@
 package com.learing.collection.intercept;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
@@ -45,5 +46,10 @@ public class AspectService {
             throwable.printStackTrace();
             throw new RuntimeException(throwable.getCause());
         }
+    }
+
+    @AfterReturning(returning = "result", pointcut = "doInvoke()")
+    public void doAfterReturning(JoinPoint joinPoint, Object result){
+        log.info("切面拦截doAfterReturning");
     }
 }
