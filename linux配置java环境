@@ -1,0 +1,13 @@
+linux下配置java环境
+
+命令:vim /etc/profile
+
+进入文本编辑,用按键"shift+g"定位到文件尾,点击'i' 进入编辑,
+
+另起一行写下如下数据
+
+export JAVA_HOME=/usr/local/src/jdk1.8.0_171 （根据自己的完整路径修改）
+
+export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
+
+export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
